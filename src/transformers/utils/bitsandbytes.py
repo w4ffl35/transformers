@@ -4,7 +4,7 @@ from .import_utils import is_accelerate_available, is_bitsandbytes_available
 
 
 if is_bitsandbytes_available():
-    import bitsandbytes as bnb
+    from bitsandbytes import nn as bnbnn
     import torch
     import torch.nn as nn
 
@@ -67,7 +67,7 @@ def set_module_8bit_tensor_to_device(module, tensor_name, device, value=None):
                     )
             else:
                 new_value = torch.tensor(value, device="cpu")
-            new_value = bnb.nn.Int8Params(new_value, requires_grad=False, has_fp16_weights=has_fp16_weights).to(device)
+            new_value = bnbnn.Int8Params(new_value, requires_grad=False, has_fp16_weights=has_fp16_weights).to(device)
             module._parameters[tensor_name] = new_value
     else:
         if value is None:
@@ -86,7 +86,7 @@ def set_module_8bit_tensor_to_device(module, tensor_name, device, value=None):
 
 def replace_8bit_linear(model, threshold=6.0, modules_to_not_convert="lm_head", current_key_name=None):
     """
-    A helper function to replace all `torch.nn.Linear` modules by `bnb.nn.Linear8bit` modules from the `bitsandbytes`
+    A helper function to replace all `torch.nn.Linear` modules by `bnbnn.Linear8bit` modules from the `bitsandbytes`
     library. This will enable running your models using mixed int8 precision as described by the paper `GPT3.int8():
     8-bit Matrix Multiplication for Transformers at Scale`. Make sure `bitsandbytes` compiled with the correct CUDA
     version of your hardware is installed before running this function. `pip install -i https://test.pypi.org/simple/
@@ -125,7 +125,7 @@ def replace_8bit_linear(model, threshold=6.0, modules_to_not_convert="lm_head", 
             # Check if the current key is not in the `modules_to_not_convert`
             if not any(key in ".".join(current_key_name) for key in modules_to_not_convert):
                 with init_empty_weights():
-                    model._modules[name] = bnb.nn.Linear8bitLt(
+                    model._modules[name] = bnbnn.Linear8bitLt(
                         module.in_features,
                         module.out_features,
                         module.bias is not None,

@@ -114,13 +114,13 @@ class MixedInt8Test(BaseMixedInt8Test):
         A simple test to check if the model conversion has been done correctly by checking on the
         memory footprint of the converted model and the class type of the linear layers of the converted models
         """
-        from bitsandbytes.nn import Int8Params
+        from bitsandbytes import nn as bnbnn
 
         mem_fp16 = self.model_fp16.get_memory_footprint()
         mem_8bit = self.model_8bit.get_memory_footprint()
 
         self.assertAlmostEqual(mem_fp16 / mem_8bit, self.EXPECTED_RELATIVE_DIFFERENCE)
-        self.assertTrue(self.model_8bit.transformer.h[0].mlp.dense_4h_to_h.weight.__class__ == Int8Params)
+        self.assertTrue(self.model_8bit.transformer.h[0].mlp.dense_4h_to_h.weight.__class__ == bnbnn.Int8Params)
 
     def test_generate_quality(self):
         r"""
@@ -329,10 +329,10 @@ class MixedInt8ModelClassesTest(BaseMixedInt8Test):
         A simple test to check if the last modules for some classes (AutoModelForCausalLM or SequenceClassification)
         are kept in their native class.
         """
-        from bitsandbytes.nn import Int8Params
+        from bitsandbytes import nn as bnbnn
 
         # last param of a base model should be a linear8bit module
-        self.assertTrue(self.base_model.h[-1].mlp.dense_4h_to_h.weight.__class__ == Int8Params)
+        self.assertTrue(self.base_model.h[-1].mlp.dense_4h_to_h.weight.__class__ == bnbnn.Int8Params)
 
         # Other heads should be nn.Parameter
         self.assertTrue(self.model_8bit.lm_head.weight.__class__ == torch.nn.Parameter)
